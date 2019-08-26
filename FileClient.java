@@ -50,7 +50,7 @@ public class FileClient extends Thread {
         }
 		
 		String[] commands = str1.split(" ");
-		String cmp1 = "upload",cmp2 ="uploadudp",cmp3="createfolder",cmp4="movefile",cmp5="createuser";
+		String cmp1 = "upload",cmp2 ="uploadudp",cmp3="createfolder",cmp4="movefile",cmp5="createuser",cmp6="creategroup";
 		if(commands.length == 3){
 			if(commands[0].equals(cmp4)){
 				try{
@@ -74,6 +74,26 @@ public class FileClient extends Thread {
 			    }
 		}
         if(commands.length == 2){
+			if(commands[0].equals(cmp6)){
+				try{
+					Socket s = new Socket("localhost",client_port);
+					DataInputStream dataInpStream = new DataInputStream(s.getInputStream());
+					DataOutputStream dataOutStream = new DataOutputStream(s.getOutputStream());
+					String namegrp = commands[1];
+				    dataOutStream.writeUTF("create"+":" + commands[0] +":"+ourip+":"+namegrp+":"+"creategroup");
+                    System.out.println("Create  Group Completed");
+					String response ="";
+					response = dataInpStream.readUTF();
+					System.out.println(response);
+					dataOutStream.flush();  
+					dataInpStream.close();
+					s.close();
+				}
+				catch(IOException ex)
+				    {
+					System.out.println("Unable to Move the Files " + commands[1]);
+				    }
+			}
 			if(commands[0].equals(cmp5)){
 				try{
 					//to other pc	//Connect
@@ -86,6 +106,9 @@ public class FileClient extends Thread {
 					nameport = commands[1];
 				    dataOutStream.writeUTF("create"+":" + commands[0] +":"+ourip+":"+nameport+":"+"createuser");
                     System.out.println("Create  User Completed");
+					String response ="";
+					response = dataInpStream.readUTF();
+					System.out.println(response);
 					dataOutStream.flush();  
 					dataInpStream.close();
 					s.close();

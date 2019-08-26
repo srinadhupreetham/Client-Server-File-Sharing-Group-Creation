@@ -6,14 +6,16 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.*;  
 import java.io.*;
+import java.util.*; 
 
 public class FileServer {
-	
+	public static Vector<String> Group;
    
 	public static void main(String[] args) {
 		ServerSocket ss = null;
 		DatagramSocket udp_ser = null;
        	int port  = 3333,udp_ser_port=9000;
+		Group = new Vector<String>();
 		try{
 			ss = new ServerSocket(port);
         	udp_ser = new DatagramSocket(udp_ser_port);
@@ -82,7 +84,7 @@ class ClientHandler extends Thread{
 						// System.out.println("panicheyatle");
 					}
 					//Checking if it is a file transfer request.
-					String cmp1 = "upload",cmp2 = "uploadudp",cmp3="create",cmp4="move",cmp5 ="createuser";
+					String cmp1 = "upload",cmp2 = "uploadudp",cmp3="create",cmp4="move",cmp5 ="createuser",cmp6="creategroup";
 					String[]  Recv = strRecv.split(":");
 					for(int i= 0; i <=Recv.length-1; i++)
 						{System.out.println(Recv[i]);}
@@ -102,6 +104,11 @@ class ClientHandler extends Thread{
 							temp = "./" + Recv[2] +Recv[3];
 							File folder = new File(temp);
 							folder.mkdirs();
+							dataOutStream.writeUTF("As per your request User is created");
+						}
+						if(Recv[4].equals(cmp6)){
+							FileServer.Group.add(Recv[3]);
+							dataOutStream.writeUTF("As per your request new group is created with name "+ Recv[3] + "Now the groups length is: " +FileServer.Group.size());
 						}
 					}
 					if(Recv.length==7){
