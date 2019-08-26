@@ -8,6 +8,7 @@ import java.io.*;
 import java.util.*; 
 import java.net.InetAddress; 
 public class FileClient extends Thread {
+	public static String nameport;
 	public static void TrasferStatus(long a, long b)
 	{
 	    //Function to Print the Status bar.
@@ -50,7 +51,8 @@ public class FileClient extends Thread {
         }
 		
 		String[] commands = str1.split(" ");
-		String cmp1 = "upload",cmp2 ="uploadudp",cmp3="createfolder",cmp4="movefile",cmp5="createuser",cmp6="creategroup";
+		String cmp1 = "upload",cmp2 ="uploadudp",cmp3="createfolder",cmp4="movefile",cmp5="createuser",cmp6="creategroup",cmp7="listgroups";
+		String cmp8 = "joingroup",cmp9 = "leavegroup",cmp10 = "listdetail",cmp11 = "getfile";
 		if(commands.length == 3){
 			if(commands[0].equals(cmp4)){
 				try{
@@ -73,7 +75,109 @@ public class FileClient extends Thread {
 				    }
 			    }
 		}
+		if(commands.length == 1){
+			if(commands[0].equals(cmp7)){
+				try{
+					Socket s = new Socket("localhost",client_port);
+					DataInputStream dataInpStream = new DataInputStream(s.getInputStream());
+					DataOutputStream dataOutStream = new DataOutputStream(s.getOutputStream());
+					dataOutStream.writeUTF("list"+":"+commands[0]+":"+ourip+":"+"listgroups");
+					System.out.println("Following are the list of groups available");
+					String response ="";
+					response = dataInpStream.readUTF();
+					System.out.println(response);
+					dataOutStream.flush();
+					dataInpStream.close();
+					s.close();
+				}
+				catch(IOException e){
+					System.out.println("Cant list the groups needed");
+				}
+			}
+		}
         if(commands.length == 2){
+			if(commands[0].equals(cmp11)){
+				try{
+					Socket s = new Socket("localhost",client_port);
+					DataInputStream dataInpStream = new DataInputStream(s.getInputStream());
+					DataOutputStream dataOutStream = new DataOutputStream(s.getOutputStream());
+					String fileloc = commands[1];
+				    dataOutStream.writeUTF("Get"+":" + commands[0] +":"+nameport+":"+fileloc+":"+"getfile");
+                    System.out.println("Request to Download File is sent");
+					String response ="";
+					response = dataInpStream.readUTF();
+					System.out.println(response);
+					dataOutStream.flush();  
+					dataInpStream.close();
+					s.close();
+				}
+				catch(IOException ex)
+				    {
+					System.out.println("Unable to Download the File " + commands[1]);
+				    }
+			}
+			if(commands[0].equals(cmp10)){
+				try{
+					Socket s = new Socket("localhost",client_port);
+					DataInputStream dataInpStream = new DataInputStream(s.getInputStream());
+					DataOutputStream dataOutStream = new DataOutputStream(s.getOutputStream());
+					String namegrp = commands[1];
+				    dataOutStream.writeUTF("List"+":" + commands[0] +":"+nameport+":"+namegrp+":"+"listdetail");
+                    System.out.println("Request to List Group Details Sent");
+					String response ="";
+					response = dataInpStream.readUTF();
+					System.out.println(response);
+					dataOutStream.flush();  
+					dataInpStream.close();
+					s.close();
+				}
+				catch(IOException ex)
+				    {
+					System.out.println("Unable to List the group " + commands[1]);
+				    }				
+			}
+			if(commands[0].equals(cmp8)){
+				try{
+					Socket s = new Socket("localhost",client_port);
+					DataInputStream dataInpStream = new DataInputStream(s.getInputStream());
+					DataOutputStream dataOutStream = new DataOutputStream(s.getOutputStream());
+					String namegrp = commands[1];
+				    dataOutStream.writeUTF("Join"+":" + commands[0] +":"+nameport+":"+namegrp+":"+"joingroup");
+                    System.out.println("Request to join Group Sent");
+					String response ="";
+					response = dataInpStream.readUTF();
+					System.out.println(response);
+					dataOutStream.flush();  
+					dataInpStream.close();
+					s.close();
+				}
+				catch(IOException ex)
+				    {
+					System.out.println("Unable to Join the group " + commands[1]);
+				    }
+				
+			}
+			if(commands[0].equals(cmp9)){
+				try{
+					Socket s = new Socket("localhost",client_port);
+					DataInputStream dataInpStream = new DataInputStream(s.getInputStream());
+					DataOutputStream dataOutStream = new DataOutputStream(s.getOutputStream());
+					String namegrp = commands[1];
+				    dataOutStream.writeUTF("Leave"+":" + commands[0] +":"+nameport+":"+namegrp+":"+"leavegroup");
+                    System.out.println("Request to Leave Group Sent");
+					String response ="";
+					response = dataInpStream.readUTF();
+					System.out.println(response);
+					dataOutStream.flush();  
+					dataInpStream.close();
+					s.close();
+				}
+				catch(IOException ex)
+				    {
+					System.out.println("Unable to Leave the group " + commands[1]);
+				    }
+				
+			}
 			if(commands[0].equals(cmp6)){
 				try{
 					Socket s = new Socket("localhost",client_port);
@@ -91,7 +195,7 @@ public class FileClient extends Thread {
 				}
 				catch(IOException ex)
 				    {
-					System.out.println("Unable to Move the Files " + commands[1]);
+					System.out.println("Unable to Create the group " + commands[1]);
 				    }
 			}
 			if(commands[0].equals(cmp5)){
@@ -158,13 +262,13 @@ public class FileClient extends Thread {
                         //TCP
                         while(sentSize!=size)
 						{
-						    int window = 1000;
+						    int window = 10000;
 						    if(size - sentSize >= window)
 							sentSize += window;
 						    else
 							{
 							    window = (int)(size - sentSize);
-							    sentSize = size;
+								sentSize+=window;								
 							}
 						    contents = new byte[window];
 						    BuffInpStream.read(contents,0,window);
@@ -191,13 +295,13 @@ public class FileClient extends Thread {
 					    // InetAddress IPAddress = InetAddress.getByName("localhost");
 					     while(sentSize!=size)
 						{
-						    int window = 1000;
+						    int window = 10000;
 						    if(size - sentSize >= window)
 							sentSize += window;
 						    else
 							{
 							    window = (int)(size - sentSize);
-							    sentSize = size;
+								sentSize+=window;
 							}
 						    contents = new byte[window];
 						    BuffInpStream.read(contents,0,window);

@@ -10,12 +10,13 @@ import java.util.*;
 
 public class FileServer {
 	public static Vector<String> Group;
-   
+    public static Map< String, Vector <String> > GroupUserList;
 	public static void main(String[] args) {
 		ServerSocket ss = null;
 		DatagramSocket udp_ser = null;
        	int port  = 3333,udp_ser_port=9000;
 		Group = new Vector<String>();
+		GroupUserList = new HashMap< String, Vector <String> >();
 		try{
 			ss = new ServerSocket(port);
         	udp_ser = new DatagramSocket(udp_ser_port);
@@ -84,24 +85,37 @@ class ClientHandler extends Thread{
 						// System.out.println("panicheyatle");
 					}
 					//Checking if it is a file transfer request.
-					String cmp1 = "upload",cmp2 = "uploadudp",cmp3="create",cmp4="move",cmp5 ="createuser",cmp6="creategroup";
+					String cmp1 = "upload",cmp2 = "uploadudp",cmp3="create",cmp4="move",cmp5 ="createuser",cmp6="creategroup",cmp7="listgroups";
+					String cmp8 = "joingroup",cmp9 = "leavegroup",cmp10 = "listdetail"cmp11 = "getfile";
 					String[]  Recv = strRecv.split(":");
 					for(int i= 0; i <=Recv.length-1; i++)
 						{System.out.println(Recv[i]);}
 					byte[] contents = new byte[1000];
 					BufferedOutputStream bufferOutStream=null;
 					// System.out.println(Recv.length);
+					
+					if(Recv.length == 4){
+						if(Recv[3].equals(cmp7)){
+							String sendresponse = "";
+							Iterator grp = FileServer.Group.iterator();
+					        while (grp.hasNext()) { 
+            					sendresponse += grp.next();
+								sendresponse += "    ";
+							} 
+							dataOutStream.writeUTF(sendresponse);
+						}
+					}
 					if(Recv.length == 5){
 						if(Recv[4].equals(cmp3)){
 							// System.out.println("sdgksadknldsfnb");
 							String temp="";
-							temp = "./" + Recv[2] +Recv[3]+"/" + Recv[1];
+							temp = "./" +Recv[3]+"/" + Recv[1];
 							File folder = new File(temp);
 							folder.mkdirs();
 						}
 						if(Recv[4].equals(cmp5)){
 							String temp="";
-							temp = "./" + Recv[2] +Recv[3];
+							temp = "./" +Recv[3];
 							File folder = new File(temp);
 							folder.mkdirs();
 							dataOutStream.writeUTF("As per your request User is created");
@@ -110,6 +124,77 @@ class ClientHandler extends Thread{
 							FileServer.Group.add(Recv[3]);
 							dataOutStream.writeUTF("As per your request new group is created with name "+ Recv[3] + "Now the groups length is: " +FileServer.Group.size());
 						}
+						if(Recv[4].equals(cmp8)){
+							if(FileServer.GroupUserList.containsKey(Recv[3])){
+								Vector <String> Listgrp = FileServer.GroupUserList.get(Recv[3]);
+								Listgrp.add(Recv[2]);
+								FileServer.GroupUserList.put(Recv[3],Listgrp);
+								dataOutStream.writeUTF("Now the length of "+ Recv[3] +" after you joined is:" +Listgrp.size());
+							}
+							else{
+								Vector <String> single = new Vector<String> ();
+								single.add(Recv[2]);
+								FileServer.GroupUserList.put(Recv[3],single);
+								dataOutStream.writeUTF("Now the length of "+ Recv[3] +" after you joined is:" +single.size());
+							}
+
+						}
+						if(Recv[4].equals(cmp9)){
+							if(FileServer.GroupUserList.containsKey(Recv[3])){
+								Vector <String> Listgrp = FileServer.GroupUserList.get(Recv[3]);
+								if(Listgrp.size() >= 1){
+									Listgrp.remove(Recv[2]);
+									FileServer.GroupUserList.put(Recv[3],Listgrp);
+									dataOutStream.writeUTF("Now the length of "+ Recv[3] +" after you left is:" +Listgrp.size());								
+								}
+								else{
+									dataOutStream.writeUTF("You are not there in the group Please check the group name");
+								}
+							}
+							else{
+								dataOutStream.writeUTF("You are not there in the group Please check the group name");
+							}
+														
+						}
+						if(Recv[4].equals(cmp10)){
+						if(FileServer.GroupUserList.containsKey(Recv[3])){
+								Vector <String> Listgrp = FileServer.GroupUserList.get(Recv[3]);
+								if(Listgrp.size() >= 1){
+									if(Listgrp.contains(Recv[2])){
+										String response ="";
+										Iterator usernameingrp = Listgrp.iterator();
+										while (usernameingrp.hasNext()) {
+											String username = "./";
+											response += "Files under the user"; 
+											username += usernameingrp.next();
+											response += username;
+											response += " ";
+											File folder = new File(username);
+											File[] files = folder.listFiles();
+											for (File file : files)
+											{
+												if (file.isFile())
+												{
+													response += file.getPath();
+													response += "\n";
+												}
+											}	
+        								}
+										dataOutStream.writeUTF(response);
+									}
+									else{
+										dataOutStream.writeUTF("You are not there in the group Please check the group name");
+									}
+								}
+								else{
+									dataOutStream.writeUTF("You are not there in the group Please check the group name");
+								}
+							}
+							else{
+								dataOutStream.writeUTF("You are not there in the group Please check the group name");
+							}
+						}
+						
 					}
 					if(Recv.length==7){
 						if(Recv[6].equals(cmp4)){
@@ -129,7 +214,7 @@ class ClientHandler extends Thread{
 						int fileSize = Integer.parseInt(Recv[1]),rec=0,bread;
 						try{
 							//Creating the file and opening bufferreader.
-							String fileLocationdir ="./"+Recv[3]+Recv[4];
+							String fileLocationdir ="./"+Recv[4];
 							System.out.println(fileLocationdir);
 							File tt = new File(fileLocationdir,Recv[2]);
 							tt.createNewFile();
@@ -177,10 +262,9 @@ class ClientHandler extends Thread{
 						System.out.printf("$>>");
 					}
 				}
-				catch(Exception r){
-						// s.close();
+				catch(IOException e){
+					e.printStackTrace();
 					System.out.println("Socket timed out!");
-					r.printStackTrace();
 					break;
 				}
 			}
