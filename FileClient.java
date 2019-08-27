@@ -25,6 +25,11 @@ public class FileClient extends Thread {
         int type =0;
        	int client_port=3333,udp_client_port=9000;
 		String nameport="thisuser";
+		InputStream is = null;
+        FileOutputStream fos = null;
+        BufferedOutputStream bos = null;
+        int bufferSize = 0;
+		
         String str1="",str2="";
 		String ourip ="";
 		try{		
@@ -49,7 +54,7 @@ public class FileClient extends Thread {
         {
             System.out.println("Error in reading Buffer: Please Check");
         }
-		
+		BufferedOutputStream bufferOutStream=null;
 		String[] commands = str1.split(" ");
 		String cmp1 = "upload",cmp2 ="uploadudp",cmp3="createfolder",cmp4="movefile",cmp5="createuser",cmp6="creategroup",cmp7="listgroups";
 		String cmp8 = "joingroup",cmp9 = "leavegroup",cmp10 = "listdetail",cmp11 = "getfile";
@@ -98,23 +103,44 @@ public class FileClient extends Thread {
         if(commands.length == 2){
 			if(commands[0].equals(cmp11)){
 				try{
-					Socket s = new Socket("localhost",client_port);
-					DataInputStream dataInpStream = new DataInputStream(s.getInputStream());
-					DataOutputStream dataOutStream = new DataOutputStream(s.getOutputStream());
-					String fileloc = commands[1];
-				    dataOutStream.writeUTF("Get"+":" + commands[0] +":"+nameport+":"+fileloc+":"+"getfile");
-                    System.out.println("Request to Download File is sent");
-					String response ="";
-					response = dataInpStream.readUTF();
-					System.out.println(response);
-					dataOutStream.flush();  
-					dataInpStream.close();
-					s.close();
+				// System.out.print("Enter the file name");
+				String[] fname = commands[1].split("/");
+				String filename ="";
+				for(int i=0;i<fname.length;i++){
+					filename = fname[i];
 				}
-				catch(IOException ex)
-				    {
-					System.out.println("Unable to Download the File " + commands[1]);
-				    }
+				Socket s = new Socket("localhost",client_port);									
+					// sending the file name to server. Uses PrintWriter
+				OutputStream  ostream = s.getOutputStream( );
+				DataOutputStream dataOutStream = new DataOutputStream(s.getOutputStream());
+					String namegrp = commands[1];
+				    dataOutStream.writeUTF("Get"+":" + commands[0] +":"+nameport+":"+namegrp+":"+"getfile");  
+								// receiving the contents from server.  Uses input stream
+				InputStream istream = s.getInputStream();
+				BufferedReader socketRead = new BufferedReader(new InputStreamReader(istream));
+			
+				String str;
+				while((str = socketRead.readLine())  !=  null) // reading line-by-line
+				{
+					System.out.println(str);  
+					try { 
+			
+						// Open given file in append mode. 
+						BufferedWriter out = new BufferedWriter( 
+							new FileWriter(filename, true)); 
+						out.write(str); 
+						out.write("\n");
+						out.close(); 
+					} 
+					catch (IOException e) { 
+						System.out.println("exception occoured" + e); 
+					}         
+				}
+				socketRead.close();		
+				}
+				catch(Exception e){
+
+				}
 			}
 			if(commands[0].equals(cmp10)){
 				try{
@@ -219,7 +245,7 @@ public class FileClient extends Thread {
 				}
 				catch(IOException ex)
 				    {
-					System.out.println("Unable to Move the Files " + commands[1]);
+					System.out.println("Unable to Create the User " + commands[1]);
 				    }
 			}
 			if(commands[0].equals(cmp3)){

@@ -86,7 +86,7 @@ class ClientHandler extends Thread{
 					}
 					//Checking if it is a file transfer request.
 					String cmp1 = "upload",cmp2 = "uploadudp",cmp3="create",cmp4="move",cmp5 ="createuser",cmp6="creategroup",cmp7="listgroups";
-					String cmp8 = "joingroup",cmp9 = "leavegroup",cmp10 = "listdetail"cmp11 = "getfile";
+					String cmp8 = "joingroup",cmp9 = "leavegroup",cmp10 = "listdetail",cmp11 = "getfile";
 					String[]  Recv = strRecv.split(":");
 					for(int i= 0; i <=Recv.length-1; i++)
 						{System.out.println(Recv[i]);}
@@ -194,7 +194,34 @@ class ClientHandler extends Thread{
 								dataOutStream.writeUTF("You are not there in the group Please check the group name");
 							}
 						}
+						if(Recv[4].equals(cmp11)){
+							System.out.println("Server ready for connection");           // binding with port: 4000
+							System.out.println("Connection is successful and wating for chatting");
+																														
+													// reading the file name from client
+							String fname ="./";
+							String Path[] = Recv[3].split("/"); 
+							for(int i=1;i<Path.length-1;i++){
+								fname += Path[i];
+								fname += "/";
+							}
+							fname += Path[Path.length -1];
+													// reading file contents
+							BufferedReader contentRead = new BufferedReader(new FileReader(fname) );
+								
+												// keeping output stream ready to send the contents
+							OutputStream ostream = this.s.getOutputStream( );
+							PrintWriter pwrite = new PrintWriter(ostream, true);
+							
+							String str;
+							while((str = contentRead.readLine()) !=  null) // reading line-by-line from file
+							{
+								pwrite.println(str);         // sending each line to client
+							}
 						
+							this.s.close();       // closing network sockets
+							pwrite.close();  contentRead.close();
+						}
 					}
 					if(Recv.length==7){
 						if(Recv[6].equals(cmp4)){
