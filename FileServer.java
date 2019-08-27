@@ -54,7 +54,7 @@ class ClientHandler extends Thread{
     final DataOutputStream dataOutStream; 
     final Socket s;
 	final DatagramSocket udp_ser;
-	public String username;
+	public static String username;
 	public ClientHandler(Socket s, DataInputStream dataInpStream, DataOutputStream dataOutStream, DatagramSocket udp_ser)  
     { 
         this.s = s; 
@@ -89,14 +89,46 @@ class ClientHandler extends Thread{
 					}
 					//Checking if it is a file transfer request.
 					String cmp1 = "upload",cmp2 = "uploadudp",cmp3="create",cmp4="move",cmp5 ="createuser",cmp6="creategroup",cmp7="listgroups";
-					String cmp8 = "joingroup",cmp9 = "leavegroup",cmp10 = "listdetail",cmp11 = "getfile";
+					String cmp8 = "joingroup",cmp9 = "leavegroup",cmp10 = "listdetail",cmp11 = "getfile",cmp12 ="sharemsg";
 					String[]  Recv = strRecv.split(":");
 					for(int i= 0; i <=Recv.length-1; i++)
 						{System.out.println(Recv[i]);}
 					byte[] contents = new byte[1000];
 					BufferedOutputStream bufferOutStream=null;
 					// System.out.println(Recv.length);
-					
+					if(Recv.length == 2){
+						if(Recv[0].equals(cmp12)){
+							String temprep ="shdhjfgjf";
+							for(Map.Entry<String, Vector<String> > entry : FileServer.GroupUserList.entrySet()){
+								Vector<String> userlist = new Vector<String> ();
+								userlist = entry.getValue();
+								temprep += userlist.size();
+								temprep = temprep + "\n" + "Username is :" + username + "\n";
+								if(userlist.contains(username)){
+								Iterator value = userlist.iterator();
+									while(value.hasNext()){
+										Object tempvalue = value.next();
+										FileServer.Sending.add(FileServer.clients.get(tempvalue));
+										temprep +=tempvalue;
+										temprep += "Yes\n";
+										temprep = temprep + "\n" + tempvalue + "Size is " + FileServer.Sending.size() + "\n";
+									}
+								}
+							}
+							
+							String out = username +"-->";
+							// FileServer.Sending.remove(this.s);
+							out += Recv[1];
+							temprep += "\n this is final and size is " + FileServer.Sending.size() + " \n";
+							dataOutStream.writeUTF(temprep);
+							try{
+								// Thread t1 = new MsgHandler(out, FileServer.Sending);
+								// t1.start();
+							}catch(Exception e){
+
+							}
+						}
+					}
 					if(Recv.length == 4){
 						if(Recv[3].equals(cmp7)){
 							String sendresponse = "";
@@ -170,12 +202,12 @@ class ClientHandler extends Thread{
 										String response ="";
 										Iterator usernameingrp = Listgrp.iterator();
 										while (usernameingrp.hasNext()) {
-											String username = "./";
+											String usrname = "./";
 											response += "Files under the user"; 
-											username += usernameingrp.next();
-											response += username;
+											usrname += usernameingrp.next();
+											response += usrname;
 											response += " ";
-											File folder = new File(username);
+											File folder = new File(usrname);
 											File[] files = folder.listFiles();
 											for (File file : files)
 											{

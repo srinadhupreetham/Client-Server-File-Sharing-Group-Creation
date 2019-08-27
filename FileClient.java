@@ -29,7 +29,7 @@ public class FileClient extends Thread {
         FileOutputStream fos = null;
         BufferedOutputStream bos = null;
         int bufferSize = 0;
-		
+		String serverip ="localhost";
         String str1="",str2="";
 		String ourip ="";
 		try{		
@@ -57,7 +57,35 @@ public class FileClient extends Thread {
 		BufferedOutputStream bufferOutStream=null;
 		String[] commands = str1.split(" ");
 		String cmp1 = "upload",cmp2 ="uploadudp",cmp3="createfolder",cmp4="movefile",cmp5="createuser",cmp6="creategroup",cmp7="listgroups";
-		String cmp8 = "joingroup",cmp9 = "leavegroup",cmp10 = "listdetail",cmp11 = "getfile";
+		String cmp8 = "joingroup",cmp9 = "leavegroup",cmp10 = "listdetail",cmp11 = "getfile",cmp12 = "sharemsg";
+		if(commands[0].equals(cmp12)){
+			try{
+			//to other pc	//Connect
+			// Socket s= new Socket("10.1.34.33",client_port);
+				Socket s= new Socket(serverip,client_port);
+				DataInputStream dataInpStream=new DataInputStream(s.getInputStream());  
+				DataOutputStream dataOutStream=new DataOutputStream(s.getOutputStream());
+				byte[] contents;
+				String msg = "";
+				for(int i=1;i<commands.length;i++){
+					msg += commands[i];
+					msg += " ";
+				}
+				dataOutStream.writeUTF("sharemsg"+":" + msg);
+				System.out.println("Message Sent to Server Completed");
+				String response = "";
+				response = dataInpStream.readUTF();
+				System.out.println(response);
+				dataOutStream.flush();  
+				dataInpStream.close();
+				s.close();
+			}
+			catch(IOException ex)
+			{
+				System.out.println("Unable to Move the Files " + commands[1]);
+			}
+		}
+		
 		if(commands.length == 3){
 			if(commands[0].equals(cmp4)){
 				try{
