@@ -56,11 +56,11 @@ public class FileClient extends Thread {
         }
 		BufferedOutputStream bufferOutStream=null;
 		String[] commands = str1.split(" ");
-		String cmp1 = "upload",cmp2 ="uploadudp",cmp3="createfolder",cmp4="movefile",cmp5="createuser",cmp6="creategroup",cmp7="listgroups";
-		String cmp8 = "joingroup",cmp9 = "leavegroup",cmp10 = "listdetail",cmp11 = "getfile",cmp12 = "sharemsg";
+		String cmp1 = "upload",cmp2 ="upload_udp",cmp3="create_folder",cmp4="move_file",cmp5="create_user",cmp6="create_group",cmp7="list_groups";
+		String cmp8 = "join_group",cmp9 = "leave_group",cmp10 = "list_detail",cmp11 = "get_file",cmp12 = "share_msg";
 		if(commands[0].equals(cmp12)){
 			try{
-			//to other pc	//Connect
+			//to other pc	//Connect   
 			// Socket s= new Socket("10.1.34.33",client_port);
 				Socket s= new Socket(serverip,client_port);
 				DataInputStream dataInpStream=new DataInputStream(s.getInputStream());  
@@ -91,7 +91,7 @@ public class FileClient extends Thread {
 				try{
 					//to other pc	//Connect
   				    // Socket s= new Socket("10.1.34.33",client_port);
-					Socket s= new Socket("localhost",client_port);
+					Socket s= new Socket(serverip,client_port);
 				    DataInputStream dataInpStream=new DataInputStream(s.getInputStream());  
 				    DataOutputStream dataOutStream=new DataOutputStream(s.getOutputStream());
 
@@ -111,7 +111,7 @@ public class FileClient extends Thread {
 		if(commands.length == 1){
 			if(commands[0].equals(cmp7)){
 				try{
-					Socket s = new Socket("localhost",client_port);
+					Socket s = new Socket(serverip,client_port);
 					DataInputStream dataInpStream = new DataInputStream(s.getInputStream());
 					DataOutputStream dataOutStream = new DataOutputStream(s.getOutputStream());
 					dataOutStream.writeUTF("list"+":"+commands[0]+":"+ourip+":"+"listgroups");
@@ -137,7 +137,7 @@ public class FileClient extends Thread {
 				for(int i=0;i<fname.length;i++){
 					filename = fname[i];
 				}
-				Socket s = new Socket("localhost",client_port);									
+				Socket s = new Socket(serverip,client_port);									
 					// sending the file name to server. Uses PrintWriter
 				OutputStream  ostream = s.getOutputStream( );
 				DataOutputStream dataOutStream = new DataOutputStream(s.getOutputStream());
@@ -172,7 +172,7 @@ public class FileClient extends Thread {
 			}
 			if(commands[0].equals(cmp10)){
 				try{
-					Socket s = new Socket("localhost",client_port);
+					Socket s = new Socket(serverip,client_port);
 					DataInputStream dataInpStream = new DataInputStream(s.getInputStream());
 					DataOutputStream dataOutStream = new DataOutputStream(s.getOutputStream());
 					String namegrp = commands[1];
@@ -192,7 +192,7 @@ public class FileClient extends Thread {
 			}
 			if(commands[0].equals(cmp8)){
 				try{
-					Socket s = new Socket("localhost",client_port);
+					Socket s = new Socket(serverip,client_port);
 					DataInputStream dataInpStream = new DataInputStream(s.getInputStream());
 					DataOutputStream dataOutStream = new DataOutputStream(s.getOutputStream());
 					String namegrp = commands[1];
@@ -213,7 +213,7 @@ public class FileClient extends Thread {
 			}
 			if(commands[0].equals(cmp9)){
 				try{
-					Socket s = new Socket("localhost",client_port);
+					Socket s = new Socket(serverip,client_port);
 					DataInputStream dataInpStream = new DataInputStream(s.getInputStream());
 					DataOutputStream dataOutStream = new DataOutputStream(s.getOutputStream());
 					String namegrp = commands[1];
@@ -234,11 +234,11 @@ public class FileClient extends Thread {
 			}
 			if(commands[0].equals(cmp6)){
 				try{
-					Socket s = new Socket("localhost",client_port);
+					Socket s = new Socket(serverip,client_port);
 					DataInputStream dataInpStream = new DataInputStream(s.getInputStream());
 					DataOutputStream dataOutStream = new DataOutputStream(s.getOutputStream());
 					String namegrp = commands[1];
-				    dataOutStream.writeUTF("create"+":" + commands[0] +":"+ourip+":"+namegrp+":"+"creategroup");
+				    dataOutStream.writeUTF("create"+":" + commands[0] +":"+nameport+":"+namegrp+":"+"creategroup");
                     System.out.println("Create  Group Completed");
 					String response ="";
 					response = dataInpStream.readUTF();
@@ -256,7 +256,7 @@ public class FileClient extends Thread {
 				try{
 					//to other pc	//Connect
   				    // Socket s= new Socket("10.1.34.33",client_port);
-					Socket s= new Socket("localhost",client_port);
+					Socket s= new Socket(serverip,client_port);
 				    DataInputStream dataInpStream=new DataInputStream(s.getInputStream());  
 				    DataOutputStream dataOutStream=new DataOutputStream(s.getOutputStream());
 
@@ -281,7 +281,7 @@ public class FileClient extends Thread {
 					//to other pc	//Connect
   				    // Socket s= new Socket("10.1.34.33",client_port);
 					// String IPaddr = "10.1.34.33";
-					Socket s= new Socket("localhost",client_port);
+					Socket s= new Socket(serverip,client_port);
 					System.out.println(s.getLocalAddress().getHostAddress());
 				    DataInputStream dataInpStream=new DataInputStream(s.getInputStream());  
 				    DataOutputStream dataOutStream=new DataOutputStream(s.getOutputStream());
@@ -305,7 +305,7 @@ public class FileClient extends Thread {
                     FileInputStream fileInpStream = new FileInputStream(fileName);
                     BufferedInputStream BuffInpStream = new BufferedInputStream(fileInpStream);
                     //Connect
-  				    Socket s= new Socket("localhost",client_port);
+  				    Socket s= new Socket(serverip,client_port);
 				    DataInputStream dataInpStream=new DataInputStream(s.getInputStream());  
 				    DataOutputStream dataOutStream=new DataOutputStream(s.getOutputStream());
 
@@ -344,7 +344,7 @@ public class FileClient extends Thread {
 
 					    //Creating the UDP socket and sending.
 					    DatagramSocket udpSocket = new DatagramSocket();
-					    InetAddress IPAddress = InetAddress.getByName("localhost");
+					    InetAddress IPAddress = InetAddress.getByName(serverip);
 
 					    // InetAddress IPAddress = InetAddress.getByName("localhost");
 					     while(sentSize!=size)

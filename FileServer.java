@@ -55,6 +55,7 @@ class ClientHandler extends Thread{
     final Socket s;
 	final DatagramSocket udp_ser;
 	public static String username;
+	public static String listdetailfile;
 	public ClientHandler(Socket s, DataInputStream dataInpStream, DataOutputStream dataOutStream, DatagramSocket udp_ser)  
     { 
         this.s = s; 
@@ -73,6 +74,28 @@ class ClientHandler extends Thread{
 	    for(int k=per/10;k<10;k++)
 		System.out.printf(" ");
 	    System.out.println("]           " +  String.valueOf(per) + "%");
+	}
+	public static void listFiles(String path)
+    {
+        File folder = new File(path);
+ 
+        File[] files = folder.listFiles();
+ 
+        for (File file : files)
+        {
+            if (file.isFile())
+            {
+				String tempfileloc = folder + "/" + file.getName();
+				// String[] tempfilelocs = tempfileloc.split(":");
+				// listdetailfile += file.getAbsolutePath() + "\n";
+				listdetailfile = listdetailfile + tempfileloc + "\n";
+                // System.out.println(file.getName());
+            }
+            else if (file.isDirectory())
+            {
+                listFiles(file.getPath());
+            }
+        }
 	}
 	public void run(){
 		while(true)
@@ -160,14 +183,22 @@ class ClientHandler extends Thread{
 						}
 						if(Recv[4].equals(cmp6)){
 							FileServer.Group.add(Recv[3]);
-							dataOutStream.writeUTF("As per your request new group is created with name "+ Recv[3] + "Now the groups length is: " +FileServer.Group.size());
+							// Vector <String> single = new Vector<String> ();
+							// single.add(Recv[2]);
+							// FileServer.GroupUserList.put(Recv[3],single);
+							dataOutStream.writeUTF("As per your request new group is created with name "+ Recv[3] + "\nNow the groups length is: " +FileServer.Group.size() + " \n Join the group to add yourself into it");
 						}
 						if(Recv[4].equals(cmp8)){
 							if(FileServer.GroupUserList.containsKey(Recv[3])){
 								Vector <String> Listgrp = FileServer.GroupUserList.get(Recv[3]);
-								Listgrp.add(Recv[2]);
-								FileServer.GroupUserList.put(Recv[3],Listgrp);
-								dataOutStream.writeUTF("Now the length of "+ Recv[3] +" after you joined is:" +Listgrp.size());
+								if(Listgrp.contains(Recv[2])){
+									dataOutStream.writeUTF("You are already there in this group please try a new one");
+								}
+								else{
+									Listgrp.add(Recv[2]);
+									FileServer.GroupUserList.put(Recv[3],Listgrp);
+									dataOutStream.writeUTF("Now the length of "+ Recv[3] +" after you joined is:" +Listgrp.size());
+								}
 							}
 							else{
 								Vector <String> single = new Vector<String> ();
@@ -201,22 +232,28 @@ class ClientHandler extends Thread{
 									if(Listgrp.contains(Recv[2])){
 										String response ="";
 										Iterator usernameingrp = Listgrp.iterator();
+										
 										while (usernameingrp.hasNext()) {
 											String usrname = "./";
-											response += "Files under the user"; 
+											response += "Files under the user : \n"; 
 											usrname += usernameingrp.next();
-											response += usrname;
-											response += " ";
-											File folder = new File(usrname);
-											File[] files = folder.listFiles();
-											for (File file : files)
-											{
-												if (file.isFile())
-												{
-													response += file.getPath();
-													response += "\n";
-												}
-											}	
+											String tmpusr = usrname.substring(2,usrname.length());
+											response += tmpusr;
+											response += "\n ================================= \n";
+											
+											listFiles(usrname);
+											response += listdetailfile;
+											listdetailfile = "";
+											// File folder = new File(usrname);
+											// File[] files = folder.listFiles();
+											// for (File file : files)
+											// {
+											// 	if (file.isFile())
+											// 	{
+											// 		response += file.getPath();
+											// 		response += "\n";
+											// 	}
+											// }	
         								}
 										dataOutStream.writeUTF(response);
 									}
@@ -233,10 +270,7 @@ class ClientHandler extends Thread{
 							}
 						}
 						if(Recv[4].equals(cmp11)){
-							System.out.println("Server ready for connection");           // binding with port: 4000
-							System.out.println("Connection is successful and wating for chatting");
 																														
-													// reading the file name from client
 							String fname ="./";
 							String Path[] = Recv[3].split("/"); 
 							for(int i=1;i<Path.length-1;i++){
@@ -265,8 +299,8 @@ class ClientHandler extends Thread{
 						if(Recv[6].equals(cmp4)){
 							String src="",dest="";
 							
-							src = "./"+Recv[4]+Recv[5]+Recv[2].substring(1);
-							dest = "./"+Recv[4]+Recv[5]+Recv[3].substring(1);
+							src = "./"+Recv[5]+Recv[2].substring(1);
+							dest = "./"+Recv[5]+Recv[3].substring(1);
 							// System.out.println(src);
 							// System.out.println(dest);
 							File a = new File(src);
@@ -342,3 +376,35 @@ class ClientHandler extends Thread{
 		}
 	}
 }
+class MsgHandler extends Thread 
+{
+    String message;
+    List<Socket> receiver_list = new ArrayList<Socket>();
+    public MsgHandler(String message, List<Socket> receiver_list) 
+    {
+        this.message = message;
+        this.receiver_list = receiver_list;
+    }
+    
+    @Override
+    public void run() 
+    {
+        // String[] split_msg = this.message.split(" ");
+        // if(split_msg[0].equals("file"))
+        // {
+            // System.out.println(this.message); 
+            for(int i=0;i < this.receiver_list.size(); ++i){
+                Socket recv = this.receiver_list.get(i);
+                try{
+                    DataOutputStream dos = new DataOutputStream(recv.getOutputStream());
+                    dos.writeUTF(this.message);
+					System.out.println("Message pamputhunam");
+                }
+                catch (IOException e) {
+                    // e.printStackTrace();
+                }
+
+            }
+    }
+}
+
