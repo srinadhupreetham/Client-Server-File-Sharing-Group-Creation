@@ -11,6 +11,8 @@ import java.util.*;
 public class FileServer {
 	public static Vector<String> Group;
     public static Map< String, Vector <String> > GroupUserList;
+	public static Map<String, Socket> clients = new HashMap<String, Socket>();
+	public static List<Socket> Sending = new ArrayList<Socket>();
 	public static void main(String[] args) {
 		ServerSocket ss = null;
 		DatagramSocket udp_ser = null;
@@ -52,6 +54,7 @@ class ClientHandler extends Thread{
     final DataOutputStream dataOutStream; 
     final Socket s;
 	final DatagramSocket udp_ser;
+	public String username;
 	public ClientHandler(Socket s, DataInputStream dataInpStream, DataOutputStream dataOutStream, DatagramSocket udp_ser)  
     { 
         this.s = s; 
@@ -118,7 +121,10 @@ class ClientHandler extends Thread{
 							temp = "./" +Recv[3];
 							File folder = new File(temp);
 							folder.mkdirs();
-							dataOutStream.writeUTF("As per your request User is created");
+							username = Recv[3];
+							FileServer.clients.put(Recv[3],this.s);
+							int tempolen = FileServer.clients.size();
+							dataOutStream.writeUTF("As per your request User is created"+tempolen);
 						}
 						if(Recv[4].equals(cmp6)){
 							FileServer.Group.add(Recv[3]);
